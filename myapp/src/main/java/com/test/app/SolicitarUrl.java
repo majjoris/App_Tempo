@@ -1,5 +1,10 @@
 package com.test.app;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -12,13 +17,11 @@ public class SolicitarUrl {
     
      //Parametros iniciais para solicitção
      private static String url_principal="https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/";
-     private String localizacao="Catalão,BR";
-     private String data_inicio=null; 
-     private String data_fim=null; 
-     private String unidade_metrica="metric"; //us,metric,uk 
-     private String Chave_api="76TNBX56HWG6LMD274ED3RXF7";
-
-
+     private String localizacao;
+     private String data_inicio; 
+     private String data_fim; 
+     private String unidade_metrica; //us,metric,uk 
+     private String Chave_api;
 
     void previsao_prox_dias() throws Exception {
        
@@ -28,12 +31,12 @@ public class SolicitarUrl {
         StringBuilder requestBuilder=new StringBuilder(url_principal);
         requestBuilder.append(localizacao);
                 
-       /*  if (startDate!=null && !startDate.isEmpty()) {
-            requestBuilder.append("/").append(startDate);
-            if (endDate!=null && !endDate.isEmpty()) {
-                requestBuilder.append("/").append(endDate);
+         if (data_inicio!=null && !data_inicio.isEmpty()) {
+            requestBuilder.append("/").append(data_inicio);
+            if (data_fim!=null && !data_fim.isEmpty()) {
+                requestBuilder.append("/").append(data_fim);
             }
-        }*/
+        }
                 
         //Build the parameters to send via GET or POST
         URIBuilder builder = new URIBuilder(requestBuilder.toString());
@@ -66,11 +69,84 @@ public class SolicitarUrl {
     }
 
 
+    void previsao_completa() throws Exception {		
+        Usarjson parsejson = new Usarjson();
+
+		String method="GET"; // GET OR POST
+		
+		
+		//Build the URL pieces
+		StringBuilder requestBuilder=new StringBuilder(url_principal);
+		requestBuilder.append(localizacao);
+		
+		if (data_inicio!=null && !data_inicio.isEmpty()) {
+			requestBuilder.append("/").append(data_inicio);
+			if (data_fim!=null && !data_fim.isEmpty()) {
+				requestBuilder.append("/").append(data_fim);
+			}
+		}
+		
+		//Build the parameters to send via GET or POST
+		StringBuilder paramBuilder=new StringBuilder();
+		paramBuilder.append("&").append("unitGroup=").append(unidade_metrica);
+		paramBuilder.append("&").append("key=").append(Chave_api);
+		
+		
+		//for GET requests, add the parameters to the request
+		if ("GET".equals(method)) {
+			requestBuilder.append("?").append(paramBuilder);
+		}
+		
+		//set up the connection
+		URL url = new URL(requestBuilder.toString());
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("GET");
+		
+
+	    //If post method, send post request
+		if ("POST".equals(method)) {
+			conn.setDoOutput( true );
+			conn.setInstanceFollowRedirects( false );
+			conn.setRequestMethod( "POST" );
+			conn.setRequestProperty( "Content-Type", "application/x-www-form-urlencoded"); 
+			conn.setRequestProperty( "charset", "utf-8");
+			conn.setRequestProperty( "Content-Length", Integer.toString( paramBuilder.length() ));
+			conn.setUseCaches( false );
+		    DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
+		    wr.writeBytes(paramBuilder.toString());
+		    wr.flush();
+		    wr.close();
+		}
+		
+		//check the response code and set up the reader for the appropriate stream
+	    int responseCode = conn.getResponseCode();
+	    boolean isSuccess=responseCode==200;
+	    StringBuffer response = new StringBuffer();
+	    try ( 
+	    		BufferedReader in = new BufferedReader(new InputStreamReader(isSuccess?conn.getInputStream():conn.getErrorStream()))
+	    	) {
+
+		    //read the response
+		    String inputLine;
+		    while ((inputLine = in.readLine()) != null) {
+		        response.append(inputLine);
+		    }
+		    in.close();
+		}  
+	    if (!isSuccess) {
+	    	System.out.printf("Bad response status code:%d, %s%n", responseCode,response.toString());
+			
+	    	return;
+	    }
+	    
+	    //pass the string response to be parsed and used
+        parsejson.parseTimelineJson(response.toString());	    
+		
+	}
 
     public String getUrl_principal() {
         return url_principal;
     }
-
 
     public String getLocalizacao() {
         return localizacao;

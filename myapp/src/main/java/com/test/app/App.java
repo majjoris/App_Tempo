@@ -1,17 +1,19 @@
 package com.test.app;
 
-import java.util.Scanner;
-
 public final class App {
     
 	
     public static void main(String[] args) throws Exception {
         
-        Scanner ler = new Scanner(System.in);
-        System.out.println("Localizaçao");
-
         SolicitarUrl urll = new SolicitarUrl();
-        urll.previsao_prox_dias();
+
+        urll.setLocalizacao("Catalão, GO, Brasil");
+        urll.setUnidade_metrica("metric");
+        urll.setChave_api("76TNBX56HWG6LMD274ED3RXF7");
+        //urll.setData_inicio("2020-12-01");
+        //urll.setData_fim("2020-12-031");
+        urll.previsao_completa();
+        
             
 
     }
