@@ -17,7 +17,7 @@ public class Usarjson {
     void parseTimelineJson(String rawResult) {
 		
 		if (rawResult==null || rawResult.isEmpty()) {
-			System.out.printf("No raw data%n");
+			System.out.printf("Sem dados%n");
 			return;
 		}
 		
@@ -29,7 +29,7 @@ public class Usarjson {
 		
         JSONArray values = timelineResponse.getJSONArray("days");
 
-        System.out.printf("Date\tMaxTemp\tMinTemp\tPrecip\tSource%n");
+        System.out.printf("Date\tMaxTemp\tMinTemp\tsunrise\tsunset%n");
 		for (int i = 0; i < values.length(); i++) {
 			JSONObject dayValue = values.getJSONObject(i);
             
@@ -37,9 +37,9 @@ public class Usarjson {
             
             double maxtemp=dayValue.getDouble("tempmax");
             double mintemp=dayValue.getDouble("tempmin");
-            double pop=dayValue.getDouble("precip");
-            String source=dayValue.getString("source");
-            System.out.printf("%s\t%.1f\t%.1f\t%.1f\t%s%n", datetime.format(DateTimeFormatter.ISO_LOCAL_DATE), maxtemp, mintemp, pop,source );
+            String nasc=dayValue.getString("sunrise");
+            String sunrise=dayValue.getString("sunset");
+            System.out.printf("%s\t%.1f\t%.1f\t%s\t%s%n", datetime.format(DateTimeFormatter.ISO_LOCAL_DATE), maxtemp, mintemp, nasc,sunrise );
         }
     }
 
